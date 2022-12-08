@@ -1,38 +1,69 @@
 import cv2
-import numpy as np
-import datetime
-#inicialização da captura da webcam
+import mediapipe as mp
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_hands = mp.solutions.hands
+
+height, width = 360, 640
+# For webcam input:
 cap = cv2.VideoCapture(0)
-ret, frame = cap.read()
+with mp_hands.Hands(
+    model_complexity=0,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5) as hands:
+  while cap.isOpened():
+    success, image = cap.read()
+    if not success:
+      print("Ignoring empty camera frame.")
+      # If loading a video, use 'break' instead of 'continue'.
+      continue
 
-x, y, w, h = 640, 360, 100, 50
-track_window1 = (x, y, w, h)
-track_window2 = (x, y, w, h)
-
-#dimensões do monitor para o controle do ponteiro do mouse
-width = 1920
-height = 1080
-
-cap_width = np.size(frame, 1)
-cap_height = np.size(frame, 0)
-
-term_crit = ( cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 1 )
-m_flag = 0
-while True:
-    ret, frame = cap.read()
-    period = datetime.datetime.now()
-    if ret == True:
-        
-        frame = cv2.flip(frame, 1)
-         
-        cv2.imshow("mouseHelper", frame)
-        key = cv2.waitKey(30) & 0xff
+    # To improve performance, optionally mark the image as not writeable to
+    # pass by reference.
+    image.flags.writeable = False
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = hands.process(image)
     
-    else:
-        break
-    if key == 27:
-        break
+    # Draw the hand annotations on the image.
+    image.flags.writeable = True
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    
+    x_min, x_max, y_min, y_max = 720, 0, 480, 0
+    
+    if results.multi_hand_landmarks:
+      for hand_landmarks in results.multi_hand_landmarks:
+        mp_drawing.draw_landmarks(
+            image,
+            hand_landmarks,
+            mp_hands.HAND_CONNECTIONS,
+            mp_drawing_styles.get_default_hand_landmarks_style(),
+            mp_drawing_styles.get_default_hand_connections_style())
+    
+        for mark in hand_landmarks.landmark:
+            x = mark.x * width
+            y = mark.y * height
+            
+            if x > x_max:
+                x_max = int(x)
+            elif x < x_min:
+                x_min = int(x)
+            if y > y_max:
+                y_max = int(y)
+            elif y < y_min:
+                y_min = int(y)
+
+    roi = image[y_min - 10: y_max + 10, x_min - 10: x_max + 10]
+            
+    cv2.rectangle(image, (x_min - 10, y_min - 10), (x_max + 10, y_max + 10), (255, 0, 0), 1)
     
     
+    # Flip the image horizontally for a selfie-view display.
+    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+    
+    
+    #cv2.imshow('Mask', cv2.flip(mask, 1))
+    if cv2.waitKey(5) & 0xFF == 27:
+      break
+
 cap.release()
 cv2.destroyAllWindows()
