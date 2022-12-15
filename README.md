@@ -1,6 +1,6 @@
 # cameraSegmentation
 Projeto 2 para Sensores Inteligentes
-<img src = "exampleCameraSegmentation.png" alt = "exemplo">
+<img src = "exemplo.png" alt = "exemplo">
 
 >Software para segmentar a imagem de uma webcam entre a mão do usuário e o fundo.
 
