@@ -4,6 +4,7 @@ Projeto 2 para Sensores Inteligentes
 
 >Software para segmentar a imagem de uma webcam entre a mão do usuário e o fundo.
 
+[Vídeo demonstrativo](https://drive.google.com/file/d/1dy5zgZyMOpj8-ASodAedIPTmrWKFLeFQ/view?usp=share_link "Exemplo em vídeo")
 ## Pré-requisitos
 - Python3
 - OpenCV para Python
